@@ -39,7 +39,8 @@ std::shared_ptr<diagnostic_updater::Updater> updater;
 std::shared_ptr<diagnostic_updater::TopicDiagnostic> imuDiag;
 std::shared_ptr<diagnostic_updater::TopicDiagnostic> filterDiag;
 
-void publishData(const Imu::IMUData& data) {
+void publishData(const Imu::IMUData& data)
+{
   sensor_msgs::Imu imu;
   sensor_msgs::MagneticField field;
   sensor_msgs::FluidPressure pressure;
@@ -50,7 +51,8 @@ void publishData(const Imu::IMUData& data) {
   assert(data.fields & Imu::IMUData::Barometer);
   assert(data.fields & Imu::IMUData::Gyroscope);
   //  only check the mag if it's enabled
-  if (enableMagnetometer) {
+  if (enableMagnetometer)
+  {
     assert(data.fields & Imu::IMUData::Magnetometer);
   }
 
@@ -59,13 +61,13 @@ void publishData(const Imu::IMUData& data) {
   imu.header.frame_id = frameId;
   pressure.header.stamp = imu.header.stamp;
   pressure.header.frame_id = frameId;
-  if (enableMagnetometer) {
+  if (enableMagnetometer)
+  {
     field.header.stamp = imu.header.stamp;
     field.header.frame_id = frameId;
   }
 
-  imu.orientation_covariance[0] =
-      -1;  //  orientation data is on a separate topic
+  imu.orientation_covariance[0] = -1;  //  orientation data is on a separate topic
 
   imu.linear_acceleration.x = data.accel[0] * gravity;
   imu.linear_acceleration.y = data.accel[1] * gravity;
@@ -76,7 +78,8 @@ void publishData(const Imu::IMUData& data) {
 
   pressure.fluid_pressure = data.pressure;
 
-  if (enableMagnetometer) {
+  if (enableMagnetometer)
+  {
     field.magnetic_field.x = data.mag[0];
     field.magnetic_field.y = data.mag[1];
     field.magnetic_field.z = data.mag[2];
@@ -85,15 +88,18 @@ void publishData(const Imu::IMUData& data) {
   //  publish
   pubIMU.publish(imu);
   pubPressure.publish(pressure);
-  if (enableMagnetometer) {
+  if (enableMagnetometer)
+  {
     pubMag.publish(field);
   }
-  if (imuDiag) {
+  if (imuDiag)
+  {
     imuDiag->tick(imu.header.stamp);
   }
 }
 
-void publishFilter(const Imu::FilterData& data) {
+void publishFilter(const Imu::FilterData& data)
+{
   assert(data.fields & Imu::FilterData::Quaternion);
   assert(data.fields & Imu::FilterData::Bias);
   assert(data.fields & Imu::FilterData::AngleUnertainty);
@@ -116,12 +122,9 @@ void publishFilter(const Imu::FilterData& data) {
   output.bias_covariance[4] = data.biasUncertainty[1] * data.biasUncertainty[1];
   output.bias_covariance[8] = data.biasUncertainty[2] * data.biasUncertainty[2];
 
-  output.orientation_covariance[0] =
-      data.angleUncertainty[0] * data.angleUncertainty[0];
-  output.orientation_covariance[4] =
-      data.angleUncertainty[1] * data.angleUncertainty[1];
-  output.orientation_covariance[8] =
-      data.angleUncertainty[2] * data.angleUncertainty[2];
+  output.orientation_covariance[0] = data.angleUncertainty[0] * data.angleUncertainty[0];
+  output.orientation_covariance[4] = data.angleUncertainty[1] * data.angleUncertainty[1];
+  output.orientation_covariance[8] = data.angleUncertainty[2] * data.angleUncertainty[2];
 
   output.quat_status = data.quaternionStatus;
   output.bias_status = data.biasStatus;
@@ -130,7 +133,8 @@ void publishFilter(const Imu::FilterData& data) {
 
   pubFilter.publish(output);
 
-  if (enableTf) {
+  if (enableTf)
+  {
     geometry_msgs::TransformStamped tf_msg;
     tf_msg.header.stamp = output.header.stamp;
     tf_msg.header.frame_id = fixeFrameId;
@@ -144,48 +148,53 @@ void publishFilter(const Imu::FilterData& data) {
     pubPose.publish(pose_msg);
   }
 
-  if (filterDiag) {
+  if (filterDiag)
+  {
     filterDiag->tick(output.header.stamp);
   }
 }
 
-std::shared_ptr<diagnostic_updater::TopicDiagnostic> configTopicDiagnostic(
-    const std::string& name, double* target) {
+std::shared_ptr<diagnostic_updater::TopicDiagnostic> configTopicDiagnostic(const std::string& name, double* target)
+{
   std::shared_ptr<diagnostic_updater::TopicDiagnostic> diag;
   const double period = 1.0 / *target;  //  for 1000Hz, period is 1e-3
 
   diagnostic_updater::FrequencyStatusParam freqParam(target, target, 0.01, 10);
   diagnostic_updater::TimeStampStatusParam timeParam(0, period * 0.5);
-  diag.reset(new diagnostic_updater::TopicDiagnostic(name, *updater, freqParam,
-                                                     timeParam));
+  diag.reset(new diagnostic_updater::TopicDiagnostic(name, *updater, freqParam, timeParam));
   return diag;
 }
 
-void updateDiagnosticInfo(diagnostic_updater::DiagnosticStatusWrapper& stat,
-                          imu_3dm_gx4::Imu* imu) {
+void updateDiagnosticInfo(diagnostic_updater::DiagnosticStatusWrapper& stat, imu_3dm_gx4::Imu* imu)
+{
   //  add base device info
   std::map<std::string, std::string> map = info.toMap();
-  for (const std::pair<std::string, std::string>& p : map) {
+  for (const std::pair<std::string, std::string>& p : map)
+  {
     stat.add(p.first, p.second);
   }
 
-  try {
+  try
+  {
     //  try to read diagnostic info
     imu->getDiagnosticInfo(fields, info);
 
     auto map = fields.toMap();
-    for (const std::pair<std::string, unsigned int>& p : map) {
+    for (const std::pair<std::string, unsigned int>& p : map)
+    {
       stat.add(p.first, p.second);
     }
-    stat.summary(diagnostic_msgs::DiagnosticStatus::OK,
-                 "Read diagnostic info.");
-  } catch (std::exception& e) {
+    stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "Read diagnostic info.");
+  }
+  catch (std::exception& e)
+  {
     const std::string message = std::string("Failed: ") + e.what();
     stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, message);
   }
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
   ros::init(argc, argv, "imu_3dm_gx4");
   ros::NodeHandle pnh("~");
 
@@ -211,14 +220,18 @@ int main(int argc, char** argv) {
   pnh.param<bool>("enable_tf", enableTf, enableFilter);
   pnh.param<bool>("verbose", verbose, false);
 
-  if (gravity <= 0.0) {
+  if (gravity <= 0.0)
+  {
     ROS_ERROR("Must set gravity value");
     return -1;
-  } else {
+  }
+  else
+  {
     ROS_INFO("Gravity is set to %f", gravity);
   }
 
-  if (requestedFilterRate < 0 || requestedImuRate < 0) {
+  if (requestedFilterRate < 0 || requestedImuRate < 0)
+  {
     ROS_ERROR("imu_rate and filter_rate must be > 0");
     return -1;
   }
@@ -232,22 +245,26 @@ int main(int argc, char** argv) {
     pubGravity.publish(float_msg);
   }
 
-  if (enableMagnetometer) {
+  if (enableMagnetometer)
+  {
     pubMag = pnh.advertise<sensor_msgs::MagneticField>("magnetic_field", 1);
     ROS_INFO("Publish magnetic field to %s", pubMag.getTopic().c_str());
   }
-  if (enableFilter) {
+  if (enableFilter)
+  {
     pubFilter = pnh.advertise<imu_3dm_gx4::FilterOutput>("filter", 1);
     ROS_INFO("Publish filter to %s", pubFilter.getTopic().c_str());
   }
-  if (enableTf) {
+  if (enableTf)
+  {
     pubPose = pnh.advertise<geometry_msgs::PoseStamped>("pose", 1);
     ROS_INFO("Publish pose to %s", pubPose.getTopic().c_str());
   }
 
   //  new instance of the IMU
   Imu imu(device, verbose);
-  try {
+  try
+  {
     imu.connect();
 
     ROS_INFO("Selecting baud rate %u", baudrate);
@@ -256,7 +273,8 @@ int main(int argc, char** argv) {
     ROS_INFO("Fetching device info.");
     imu.getDeviceInfo(info);
     std::map<std::string, std::string> map = info.toMap();
-    for (const std::pair<std::string, std::string>& p : map) {
+    for (const std::pair<std::string, std::string>& p : map)
+    {
       ROS_INFO("\t%s: %s", p.first.c_str(), p.second.c_str());
     }
 
@@ -271,40 +289,40 @@ int main(int argc, char** argv) {
     ROS_INFO("Filter data base rate: %u Hz", filterBaseRate);
 
     //  calculate decimation rates
-    if (static_cast<uint16_t>(requestedImuRate) > imuBaseRate) {
-      throw std::runtime_error("imu_rate cannot exceed " +
-                               std::to_string(imuBaseRate));
+    if (static_cast<uint16_t>(requestedImuRate) > imuBaseRate)
+    {
+      throw std::runtime_error("imu_rate cannot exceed " + std::to_string(imuBaseRate));
     }
-    if (static_cast<uint16_t>(requestedFilterRate) > filterBaseRate) {
-      throw std::runtime_error("filter_rate cannot exceed " +
-                               std::to_string(filterBaseRate));
+    if (static_cast<uint16_t>(requestedFilterRate) > filterBaseRate)
+    {
+      throw std::runtime_error("filter_rate cannot exceed " + std::to_string(filterBaseRate));
     }
 
     const uint16_t imuDecimation = imuBaseRate / requestedImuRate;
     const uint16_t filterDecimation = filterBaseRate / requestedFilterRate;
 
     ROS_INFO("Selecting IMU decimation: %u", imuDecimation);
-    std::bitset<4> imuSources = Imu::IMUData::Accelerometer |
-                                Imu::IMUData::Gyroscope |
-                                Imu::IMUData::Barometer;
-    if (enableMagnetometer) {
+    std::bitset<4> imuSources = Imu::IMUData::Accelerometer | Imu::IMUData::Gyroscope | Imu::IMUData::Barometer;
+    if (enableMagnetometer)
+    {
       ROS_INFO("Enabling magnetometer");
       imuSources |= Imu::IMUData::Magnetometer;
-    } else {
+    }
+    else
+    {
       ROS_INFO("Disabling magnetometer");
     }
     imu.setIMUDataRate(imuDecimation, imuSources);
 
     ROS_INFO("Selecting filter decimation: %u", filterDecimation);
-    imu.setFilterDataRate(filterDecimation,
-                          Imu::FilterData::Quaternion | Imu::FilterData::Bias |
-                              Imu::FilterData::AngleUnertainty |
-                              Imu::FilterData::BiasUncertainty);
+    imu.setFilterDataRate(filterDecimation, Imu::FilterData::Quaternion | Imu::FilterData::Bias |
+                                                Imu::FilterData::AngleUnertainty | Imu::FilterData::BiasUncertainty);
 
     ROS_INFO("Enabling IMU data stream");
     imu.enableIMUStream(true);
 
-    if (enableFilter) {
+    if (enableFilter)
+    {
       ROS_INFO("Enabling filter data stream");
       imu.enableFilterStream(true);
 
@@ -313,7 +331,9 @@ int main(int argc, char** argv) {
 
       ROS_INFO("Enabling gyro bias estimation");
       imu.enableBiasEstimation(true);
-    } else {
+    }
+    else
+    {
       ROS_INFO("Disabling filter data stream");
       imu.enableFilterStream(false);
     }
@@ -321,7 +341,8 @@ int main(int argc, char** argv) {
     imu.setFilterDataCallback(publishFilter);
 
     //  configure diagnostic updater
-    if (!pnh.hasParam("diagnostic_period")) {
+    if (!pnh.hasParam("diagnostic_period"))
+    {
       pnh.setParam("diagnostic_period", 0.2);  //  5hz period
     }
 
@@ -333,26 +354,33 @@ int main(int argc, char** argv) {
     double imuRate = imuBaseRate / (1.0 * imuDecimation);
     double filterRate = filterBaseRate / (1.0 * filterDecimation);
     imuDiag = configTopicDiagnostic("imu", &imuRate);
-    if (enableFilter) {
+    if (enableFilter)
+    {
       filterDiag = configTopicDiagnostic("filter", &filterRate);
     }
 
-    updater->add("diagnostic_info",
-                 boost::bind(&updateDiagnosticInfo, _1, &imu));
+    updater->add("diagnostic_info", boost::bind(&updateDiagnosticInfo, _1, &imu));
 
     ROS_INFO("Resuming the device");
     imu.resume();
 
-    while (ros::ok()) {
+    while (ros::ok())
+    {
       imu.runOnce();
       updater->update();
     }
     imu.disconnect();
-  } catch (Imu::io_error& e) {
+  }
+  catch (Imu::io_error& e)
+  {
     ROS_ERROR("IO error: %s\n", e.what());
-  } catch (Imu::timeout_error& e) {
+  }
+  catch (Imu::timeout_error& e)
+  {
     ROS_ERROR("Timeout: %s\n", e.what());
-  } catch (std::exception& e) {
+  }
+  catch (std::exception& e)
+  {
     ROS_ERROR("Exception: %s\n", e.what());
   }
 }

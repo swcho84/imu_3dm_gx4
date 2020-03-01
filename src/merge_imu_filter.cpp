@@ -29,8 +29,8 @@ int main(int argc, char** argv)
   message_filters::Subscriber<Imu> imu_sub(nh, "/imu/imu", 5);
   message_filters::Subscriber<FilterOutput> filter_sub(nh, "/imu/filter", 5);
 
-	typedef sync_policies::ApproximateTime<Imu, FilterOutput> MySyncPolicy;
-	Synchronizer<MySyncPolicy> sync(MySyncPolicy(10), imu_sub, filter_sub);
+  typedef sync_policies::ApproximateTime<Imu, FilterOutput> MySyncPolicy;
+  Synchronizer<MySyncPolicy> sync(MySyncPolicy(10), imu_sub, filter_sub);
   sync.registerCallback(boost::bind(&callback, _1, _2));
 
   ros::spin();
