@@ -236,9 +236,9 @@ int main(int argc, char** argv)
     return -1;
   }
 
-  pubIMU = pnh.advertise<sensor_msgs::Imu>("imu", 1);
-  pubPressure = pnh.advertise<sensor_msgs::FluidPressure>("pressure", 1);
-  pubGravity = pnh.advertise<std_msgs::Float64>("gravity", 1, true);
+  pubIMU = pnh.advertise<sensor_msgs::Imu>("/imu", 1);
+  pubPressure = pnh.advertise<sensor_msgs::FluidPressure>("/pressure", 1);
+  pubGravity = pnh.advertise<std_msgs::Float64>("/gravity", 1, true);
   {
     std_msgs::Float64 float_msg;
     float_msg.data = gravity;
@@ -247,17 +247,17 @@ int main(int argc, char** argv)
 
   if (enableMagnetometer)
   {
-    pubMag = pnh.advertise<sensor_msgs::MagneticField>("magnetic_field", 1);
+    pubMag = pnh.advertise<sensor_msgs::MagneticField>("/magnetic_field", 1);
     ROS_INFO("Publish magnetic field to %s", pubMag.getTopic().c_str());
   }
   if (enableFilter)
   {
-    pubFilter = pnh.advertise<imu_3dm_gx4::FilterOutput>("filter", 1);
+    pubFilter = pnh.advertise<imu_3dm_gx4::FilterOutput>("/filter", 1);
     ROS_INFO("Publish filter to %s", pubFilter.getTopic().c_str());
   }
   if (enableTf)
   {
-    pubPose = pnh.advertise<geometry_msgs::PoseStamped>("pose", 1);
+    pubPose = pnh.advertise<geometry_msgs::PoseStamped>("/pose", 1);
     ROS_INFO("Publish pose to %s", pubPose.getTopic().c_str());
   }
 
