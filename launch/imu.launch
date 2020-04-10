@@ -4,7 +4,7 @@
     <arg name="imu" default="imu"/>
 
     <!-- IMU Settings -->
-    <arg name="device" default="/dev/ttyACM0"/>
+    <arg name="device" default="/dev/gx425_innospc"/>
 
     <!-- local gravity (philadelphia) -->
     <arg name="gravity" default="9.81627"/>

@@ -41,6 +41,10 @@ std::shared_ptr<diagnostic_updater::TopicDiagnostic> filterDiag;
 
 void publishData(const Imu::IMUData& data)
 {
+  std_msgs::Float64 float_msg;
+  float_msg.data = gravity;
+  pubGravity.publish(float_msg);
+  
   sensor_msgs::Imu imu;
   sensor_msgs::MagneticField field;
   sensor_msgs::FluidPressure pressure;
@@ -239,11 +243,6 @@ int main(int argc, char** argv)
   pubIMU = pnh.advertise<sensor_msgs::Imu>("/3dm_gx4_25/imu", 1);
   pubPressure = pnh.advertise<sensor_msgs::FluidPressure>("/3dm_gx4_25/pressure", 1);
   pubGravity = pnh.advertise<std_msgs::Float64>("/3dm_gx4_25/gravity", 1, true);
-  {
-    std_msgs::Float64 float_msg;
-    float_msg.data = gravity;
-    pubGravity.publish(float_msg);
-  }
 
   if (enableMagnetometer)
   {
